@@ -5,13 +5,14 @@
 class RSADigitalSignature {
 public:
     RSADigitalSignature();
-    [[nodiscard]] bool setupRsaParams(BigInt p, BigInt q, BigInt e = 65537LL);
+    [[nodiscard]] bool setupRsaParams(const BigInt& p, const BigInt& q, const BigInt& e = 65537LL);
 
     enum RSAerror {
         Success,
         ParamsNotSetup,
         NotPrime_p,
         NotPrime_q,
+        TooLowModulus,
         Incorrect_e,
         NotCoPrime_e
     };

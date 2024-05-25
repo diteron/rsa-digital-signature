@@ -7,11 +7,11 @@ using BigInt = boost::multiprecision::cpp_int;
 class SHA1 {
 public:
     SHA1();
-    BigInt getDigest(std::vector<char> data);
-    void processBlock(const std::vector<char>& data, size_t blockOffsetIndex);
+    BigInt getDigest(std::vector<char>& data);
     
 private:
     void preProcessData(std::vector<char>& data);
+    void processBlock(const std::vector<char>& data, size_t blockOffsetIndex);
 
     const int SHA1Size = 20;
     const int BlockSize = 64;

@@ -2,14 +2,17 @@
 #include "rsa_digital_signature.h"
 
 #include <boost/multiprecision/miller_rabin.hpp>
-#include <boost/math/common_factor.hpp>
 
 RSADigitalSignature::RSADigitalSignature()
 {}
 
-bool RSADigitalSignature::setupRsaParams(BigInt p, BigInt q, BigInt e)
+bool RSADigitalSignature::setupRsaParams(const BigInt& p, const BigInt& q, const BigInt& e)
 {
     using namespace boost::multiprecision;
+
+    const BigInt minModulus("0x8000000000000000000000000000000000000000");  // Check if it's actually hex
+    BigInt n = p * q;
+    BigInt phiN = (p - 1) * (q - 1);
 
     if (!miller_rabin_test(p, 25)) {
         rsaError = RSAerror::NotPrime_p;
@@ -19,10 +22,11 @@ bool RSADigitalSignature::setupRsaParams(BigInt p, BigInt q, BigInt e)
         rsaError = RSAerror::NotPrime_q;
         return false;
     }
-    
-    BigInt n = p * q;
-    BigInt phiN = (p - 1) * (q - 1);
-    if (e <= 1LL || e >= phiN) {
+    else if (n < minModulus) {
+        rsaError = RSAerror::TooLowModulus;
+        return false;
+    }
+    else if (e <= 1LL || e >= phiN) {
         rsaError = RSAerror::Incorrect_e;
         return false;
     }
