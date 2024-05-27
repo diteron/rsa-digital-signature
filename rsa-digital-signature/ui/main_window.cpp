@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "main_window.h"
 
+#include "algorithms/sha1.h"
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
     filePath_()
@@ -78,6 +80,14 @@ void MainWindow::openFile()
 
     QByteArray byteArr = fileName.toLocal8Bit();
     filePath_ = std::filesystem::path(byteArr.constData());
+
+    // Only for testing
+    std::vector<unsigned char> testData{'s', 'h', 'a'};
+    SHA1 sha1;
+    BigInt digest = sha1.getDigest(testData);
+
+    std::string digestStr = sha1.getLastDigestStr();
+    hashDigestOutput_->setText(QString(digestStr.c_str()));
 }
 
 void MainWindow::addDigitalSignature()
