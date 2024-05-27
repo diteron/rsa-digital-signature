@@ -4,7 +4,7 @@
 SHA1::SHA1() : digest_(), digestStr_()
 {}
 
-BigInt SHA1::getDigest(std::vector<unsigned char>& data)
+BigInt SHA1::getDigest(std::vector<BYTE>& data)
 {
     h0_ = 0x67452301;
     h1_ = 0xEFCDAB89;
@@ -35,7 +35,7 @@ const std::string& SHA1::getLastDigestStr() const
     return digestStr_;
 }
 
-void SHA1::preProcessData(std::vector<unsigned char>& data)
+void SHA1::preProcessData(std::vector<BYTE>& data)
 {
     size_t initialDataSize = data.size() * 8;   // In bits
    
@@ -49,17 +49,17 @@ void SHA1::preProcessData(std::vector<unsigned char>& data)
     }
 
     // Add initial message size as 64-bit big endian integer
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 56));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 48));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 40));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 32));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 24));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 16));
-    data.push_back(static_cast<unsigned char>(initialDataSize >> 8));
-    data.push_back(static_cast<unsigned char>(initialDataSize));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 56));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 48));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 40));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 32));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 24));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 16));
+    data.push_back(static_cast<BYTE>(initialDataSize >> 8));
+    data.push_back(static_cast<BYTE>(initialDataSize));
 }
 
-void SHA1::processBlock(const std::vector<unsigned char>& data, size_t blockOffsetIndex)
+void SHA1::processBlock(const std::vector<BYTE>& data, size_t blockOffsetIndex)
 {
     size_t t;
     uint32_t a = h0_;
@@ -71,10 +71,10 @@ void SHA1::processBlock(const std::vector<unsigned char>& data, size_t blockOffs
 
     // Create the sixteen 32-bit words and extend them into eighty 32-bit words
     for (t = 0; t < 16; ++t) {
-        W[t] = (static_cast<unsigned char>(data[t * 4 + blockOffsetIndex])     << 24)
-             | (static_cast<unsigned char>(data[t * 4 + 1 + blockOffsetIndex]) << 16)
-             | (static_cast<unsigned char>(data[t * 4 + 2 + blockOffsetIndex]) << 8)
-             |  static_cast<unsigned char>(data[t * 4 + 3 + blockOffsetIndex]);
+        W[t] = (static_cast<BYTE>(data[t * 4 + blockOffsetIndex])     << 24)
+             | (static_cast<BYTE>(data[t * 4 + 1 + blockOffsetIndex]) << 16)
+             | (static_cast<BYTE>(data[t * 4 + 2 + blockOffsetIndex]) << 8)
+             |  static_cast<BYTE>(data[t * 4 + 3 + blockOffsetIndex]);
     }
     for (; t < 80; ++t) {
         W[t] = cyclicLeftRotate(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);

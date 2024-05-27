@@ -8,13 +8,13 @@ class SHA1 {
 public:
     SHA1();
 
-    BigInt getDigest(std::vector<unsigned char>& data);
+    BigInt getDigest(std::vector<BYTE>& data);
     const BigInt& getLastDigest() const;
     const std::string& getLastDigestStr() const;
     
 private:
-    void preProcessData(std::vector<unsigned char>& data);
-    void processBlock(const std::vector<unsigned char>& data, size_t blockOffsetIndex);
+    void preProcessData(std::vector<BYTE>& data);
+    void processBlock(const std::vector<BYTE>& data, size_t blockOffsetIndex);
     uint32_t cyclicLeftRotate(uint32_t data, uint32_t shiftBits) const;
     uint32_t convertToBigEndian(uint32_t num) const;
     BigInt combineDigest() const;

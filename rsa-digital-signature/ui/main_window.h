@@ -1,6 +1,8 @@
 #pragma once
 
 #include "central_widget.h"
+#include "algorithms/rsa_digital_signature.h"
+
 #include <filesystem>
 
 class MainWindow : public QMainWindow
@@ -15,8 +17,12 @@ private:
     void createParamsLayout();
     void createResultOutputLayout();
     void addOpenFileButton();
-
+    void addDigitalSignatureButtons();
     void setupStatusBar();
+
+    std::unique_ptr<RSADigitalSignature> digitalSignature_ = nullptr;
+    std::filesystem::path filePath_;
+    bool isFileSelected_ = false;
 
     CentralWidget* centralWidget_;
 
@@ -32,7 +38,6 @@ private:
     QPushButton* openFile_ = nullptr;
     QStatusBar* statusBar_ = nullptr;
     QLabel* statusBarFileName_ = nullptr;
-    std::filesystem::path filePath_;
 
     QPushButton* addDS_ = nullptr;
     QPushButton* checkDS_ = nullptr;
@@ -43,4 +48,7 @@ private slots:
     void openFile();
     void addDigitalSignature();
     void checkDigitalSignature();
+
+private:
+    void printDigitalSignatureError() const;
 };
