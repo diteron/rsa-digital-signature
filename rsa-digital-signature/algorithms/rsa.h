@@ -22,8 +22,8 @@ public:
     PrivateKey getPrivateKey() const;
     PublicKey getPublicKey() const;
 
-    static BigInt encrypt(const BigInt& m, const PublicKey& privateKey);
-    static BigInt decrypt(const BigInt& c, const PrivateKey& publicKey);
+    static BigInt encrypt(const BigInt& m, const PublicKey& publicKey);
+    static BigInt decrypt(const BigInt& c, const PrivateKey& privateKey);
 
 private:
     // Extended Euclidean algorithm

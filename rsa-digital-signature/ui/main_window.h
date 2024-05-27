@@ -23,6 +23,7 @@ private:
     std::unique_ptr<RSADigitalSignature> digitalSignature_ = nullptr;
     std::filesystem::path filePath_;
     bool isFileSelected_ = false;
+    bool isAnyParamChanged_ = false;
 
     CentralWidget* centralWidget_;
 
@@ -45,6 +46,7 @@ private:
     const int ButtonsMaxWidth_ = 150;
 
 private slots:
+    void paramChanged(const QString& str);
     void openFile();
     void addDigitalSignature();
     void checkDigitalSignature();

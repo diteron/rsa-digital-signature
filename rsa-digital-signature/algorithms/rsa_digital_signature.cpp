@@ -3,10 +3,12 @@
 
 #include <boost/multiprecision/miller_rabin.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <fstream>
 
 RSADigitalSignature::RSADigitalSignature() 
-    : fileData_(), sha1_(), sha1Digest_(), sha1DigestStr_(),
+    : fileData_(), fileSize_(),
+      sha1_(), sha1Digest_(), sha1DigestStr_(),
       digitalSignature_(), digitalSignatureStr_()
 {}
 
@@ -14,7 +16,7 @@ bool RSADigitalSignature::setupRsaParams(const BigInt& p, const BigInt& q, const
 {
     using namespace boost::multiprecision;
 
-    const BigInt minModulus("0x8000000000000000000000000000000000000000");
+    const BigInt minModulus("0x80000000000000000000000000000000000000000");
     BigInt n = p * q;
     BigInt phi_n = (p - 1) * (q - 1);
     isEachParamCorrect_ = false;
@@ -52,8 +54,8 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
         return false;
     }
 
-    uintmax_t fileSize = std::filesystem::file_size(filePath);
-    if (!readFileData(filePath, fileSize)) {
+    fileSize_ = std::filesystem::file_size(filePath);
+    if (!readFileData(filePath)) {
         error_ = Error::FileNotFound;
         return false;
     }
@@ -62,9 +64,28 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
     sha1DigestStr_ = sha1_.getLastDigestStr();
 
     createDigitalSignature();
-    addDigitalSignatureToFile(filePath, fileSize);
+    addDigitalSignatureToFile(filePath);
 
     return true;
+}
+
+bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
+{
+    if (!isEachParamCorrect_) {
+        return false;
+    }
+
+    getDigitalSignatureFromFile(filePath);
+    BigInt digestFromSignature = getDigestFromDigitalSignature(digitalSignature_);
+
+    if (!readFileData(filePath)) {
+        error_ = Error::FileNotFound;
+        return false;
+    }
+
+    BigInt fileDigest = sha1_.getDigest(fileData_);
+
+    return digestFromSignature == fileDigest;
 }
 
 RSADigitalSignature::Error RSADigitalSignature::getLastError() const
@@ -82,19 +103,19 @@ const std::string& RSADigitalSignature::getDigitalSignatureStr() const
     return digitalSignatureStr_;
 }
 
-bool RSADigitalSignature::readFileData(std::filesystem::path filePath, uintmax_t fileSize)
+bool RSADigitalSignature::readFileData(std::filesystem::path filePath)
 {
-    std::ifstream file(filePath, std::ios::binary);
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
         error_ = Error::FileNotFound;
         return false;
     }
 
+    fileData_.clear();
+    fileData_.resize(fileSize_);
+
     file >> std::noskipws;
-    fileData_.reserve(fileSize);
-    fileData_.insert(fileData_.begin(),
-                     std::istream_iterator<BYTE>(file),
-                     std::istream_iterator<BYTE>());
+    file.read(reinterpret_cast<char*>(fileData_.data()), fileSize_);
 
     return true;
 }
@@ -108,12 +129,31 @@ void RSADigitalSignature::createDigitalSignature()
     digitalSignatureStr_ = strStream.str();
 }
 
-void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePath, uintmax_t fileSize) const
+void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePath) const
 {
     using namespace boost::archive;
 
     std::ofstream file(filePath, std::ios::binary | std::ios::app);
-    binary_oarchive arch(file, boost::archive::archive_flags::no_header);
+    binary_oarchive arch(file, archive_flags::no_header);
     arch << digitalSignature_;
-    arch << fileSize;
+    arch << fileSize_;
+}
+
+void RSADigitalSignature::getDigitalSignatureFromFile(std::filesystem::path filePath)
+{
+    using namespace boost::archive;
+
+    std::ifstream file(filePath, std::ios::binary);
+
+    file.seekg(-8, std::ios::end);
+    binary_iarchive arch(file, archive_flags::no_header);
+    arch >> fileSize_;
+
+    file.seekg(fileSize_);
+    arch >> digitalSignature_;
+}
+
+BigInt RSADigitalSignature::getDigestFromDigitalSignature(const BigInt& digitalSignature) const
+{
+    return RSA::encrypt(digitalSignature, rsa_->getPublicKey());
 }

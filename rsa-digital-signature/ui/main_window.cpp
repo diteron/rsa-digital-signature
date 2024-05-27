@@ -40,6 +40,10 @@ void MainWindow::createParamsLayout()
     eInput_->setValidator(validator);
     eInput_->setText(QString("65537"));
 
+    connect(pInput_, &QLineEdit::textChanged, this, &MainWindow::paramChanged);
+    connect(qInput_, &QLineEdit::textChanged, this, &MainWindow::paramChanged);
+    connect(eInput_, &QLineEdit::textChanged, this, &MainWindow::paramChanged);
+
     paramsLayout_->addRow("p: ", pInput_);
     paramsLayout_->addRow("q: ", qInput_);
     paramsLayout_->addRow("e: ", eInput_);
@@ -91,6 +95,11 @@ void MainWindow::setupStatusBar()
     statusBar_->insertPermanentWidget(0, statusBarFileName_, 1);     // stretch > 0 moves single widget in the status bar to the left side
 }
 
+void MainWindow::paramChanged(const QString& str)
+{
+    isAnyParamChanged_ = true;
+}
+
 void MainWindow::openFile()
 {
     QString fileName = QFileDialog::getOpenFileName(centralWidget_);
@@ -110,26 +119,62 @@ void MainWindow::addDigitalSignature()
         return;
     }
 
-    bool isSuccessSetup = digitalSignature_->setupRsaParams(BigInt(pInput_->text().toStdString()),
-                                                            BigInt(qInput_->text().toStdString()),
-                                                            BigInt(eInput_->text().toStdString()));
+    bool isSuccessSetup = true;
+    if (isAnyParamChanged_) {
+        isSuccessSetup = digitalSignature_->setupRsaParams(BigInt(pInput_->text().toStdString()),
+                                                           BigInt(qInput_->text().toStdString()),
+                                                           BigInt(eInput_->text().toStdString()));
+        isAnyParamChanged_ = false;
+    }
 
     if (!isSuccessSetup || !digitalSignature_->signFile(filePath_)) {
         printDigitalSignatureError();
         return;
     }
 
-    hashDigestOutput_->setText(QString(digitalSignature_->getDigestStr().c_str()));
-    dsOutput_->setText(QString(digitalSignature_->getDigitalSignatureStr().c_str()));
+    hashDigestOutput_->setText(digitalSignature_->getDigestStr().c_str());
+    dsOutput_->setText(digitalSignature_->getDigitalSignatureStr().c_str());
 
     QApplication::beep();
     QMessageBox::information(nullptr, QApplication::applicationName(),
                              "The file was successfully signed.");
+
 }
 
 void MainWindow::checkDigitalSignature()
 {
+    if (!isFileSelected_) {
+        QApplication::beep();
+        QMessageBox::warning(nullptr, QApplication::applicationName(),
+                             "File not selected");
+        return;
+    }
 
+    bool isSuccessSetup = true;
+    if (isAnyParamChanged_) {
+        isSuccessSetup = digitalSignature_->setupRsaParams(BigInt(pInput_->text().toStdString()),
+                                                           BigInt(qInput_->text().toStdString()),
+                                                           BigInt(eInput_->text().toStdString()));
+        isAnyParamChanged_ = false;
+    }
+
+    if (!isSuccessSetup) {
+        printDigitalSignatureError();
+        return;
+    }
+
+    if (digitalSignature_->checkDigitalSignature(filePath_)) {
+        QApplication::beep();
+        QMessageBox::information(nullptr, QApplication::applicationName(),
+                                 "Digital signature is correct.");
+    }
+    else {
+        QApplication::beep();
+        QMessageBox::warning(nullptr, QApplication::applicationName(),
+                                 "Incorrect digital signature.");
+    }
+
+    isAnyParamChanged_ = false;
 }
 
 void MainWindow::printDigitalSignatureError() const
@@ -148,7 +193,7 @@ void MainWindow::printDigitalSignatureError() const
             errorText = "q is not prime.";
             break;
         case RSADigitalSignature::Error::TooLowModulus:
-            errorText = "Too low modulus, enter bigger p and q.";
+            errorText = "Too low modulus, enter bigger p and q.\nModulus must be at least 164 bit number.";
             break;
         case RSADigitalSignature::Error::Incorrect_e:
             errorText = "Incorrect e.";
