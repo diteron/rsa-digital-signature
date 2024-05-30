@@ -9,7 +9,8 @@
 RSADigitalSignature::RSADigitalSignature() 
     : fileData_(), fileSize_(),
       sha1_(), sha1Digest_(), sha1DigestStr_(),
-      digitalSignature_(), digitalSignatureStr_()
+      digitalSignature_(), digitalSignatureStr_(),
+      operationTime_()
 {}
 
 bool RSADigitalSignature::setupRsaParams(const BigInt& p, const BigInt& q, const BigInt& e)
@@ -50,6 +51,11 @@ bool RSADigitalSignature::setupRsaParams(const BigInt& p, const BigInt& q, const
 
 bool RSADigitalSignature::signFile(std::filesystem::path filePath)
 {
+    using namespace std::chrono;
+    
+    uint64_t start, end;
+    start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+
     if (!isEachParamCorrect_) {
         return false;
     }
@@ -66,11 +72,19 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
     createDigitalSignature();
     addDigitalSignatureToFile(filePath);
 
+    end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    operationTime_ = end - start;
+
     return true;
 }
 
 bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
 {
+    using namespace std::chrono;
+
+    uint64_t start, end;
+    start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+
     if (!isEachParamCorrect_) {
         return false;
     }
@@ -85,7 +99,13 @@ bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
 
     BigInt fileDigest = sha1_.getDigest(fileData_);
 
-    return digestFromSignature == fileDigest;
+
+    bool result = digestFromSignature == fileDigest;
+
+    end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    operationTime_ = end - start;
+
+    return result;
 }
 
 RSADigitalSignature::Error RSADigitalSignature::getLastError() const
@@ -101,6 +121,11 @@ const std::string& RSADigitalSignature::getDigestStr() const
 const std::string& RSADigitalSignature::getDigitalSignatureStr() const
 {
     return digitalSignatureStr_;
+}
+
+uint64_t RSADigitalSignature::getLastOperationTime() const
+{
+    return operationTime_;
 }
 
 bool RSADigitalSignature::readFileData(std::filesystem::path filePath)

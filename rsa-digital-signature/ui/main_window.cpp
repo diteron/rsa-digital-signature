@@ -60,7 +60,7 @@ void MainWindow::createResultOutputLayout()
     hashDigestOutput_->setReadOnly(true);
 
     resultOutputLayout_->addRow("Digital Signature: ", dsOutput_);
-    resultOutputLayout_->addRow("Hash digest: ", hashDigestOutput_);
+    resultOutputLayout_->addRow("Digest: ", hashDigestOutput_);
     
     centralWidget_->addLayout(resultOutputLayout_);
 }
@@ -135,10 +135,11 @@ void MainWindow::addDigitalSignature()
     hashDigestOutput_->setText(digitalSignature_->getDigestStr().c_str());
     dsOutput_->setText(digitalSignature_->getDigitalSignatureStr().c_str());
 
+    QString message("The file was successfully signed.\n");
+    message += "Time taken: " + QString::number(digitalSignature_->getLastOperationTime()) + " ms.";
     QApplication::beep();
     QMessageBox::information(nullptr, QApplication::applicationName(),
-                             "The file was successfully signed.");
-
+                             message);
 }
 
 void MainWindow::checkDigitalSignature()
@@ -164,17 +165,19 @@ void MainWindow::checkDigitalSignature()
     }
 
     if (digitalSignature_->checkDigitalSignature(filePath_)) {
+        QString message("Digital signature is correct.\n");
+        message += "Time taken: " + QString::number(digitalSignature_->getLastOperationTime()) + " ms.";
         QApplication::beep();
         QMessageBox::information(nullptr, QApplication::applicationName(),
-                                 "Digital signature is correct.");
+                                 message);
     }
     else {
+        QString message("Incorrect digital signature.\n");
+        message += "Time taken: " + QString::number(digitalSignature_->getLastOperationTime()) + " ms.";
         QApplication::beep();
         QMessageBox::warning(nullptr, QApplication::applicationName(),
-                                 "Incorrect digital signature.");
+                             message);
     }
-
-    isAnyParamChanged_ = false;
 }
 
 void MainWindow::printDigitalSignatureError() const

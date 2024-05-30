@@ -24,6 +24,7 @@ public:
 
     const std::string& getDigestStr() const;
     const std::string& getDigitalSignatureStr() const;
+    uint64_t getLastOperationTime() const;
 
 private:
     bool readFileData(std::filesystem::path filePath);
@@ -47,4 +48,6 @@ private:
 
     BigInt digitalSignature_;
     std::string digitalSignatureStr_;
+
+    uint64_t operationTime_;
 };
