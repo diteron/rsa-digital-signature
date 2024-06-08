@@ -112,17 +112,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="algorithms\rsa_digital_signature.cpp" />
-    <ClCompile Include="algorithms\hash_algorithm.cpp" />
+    <ClCompile Include="algorithms\hash\hash_algorithm.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="algorithms\sha1.cpp" />
-    <ClCompile Include="algorithms\rsa.cpp" />
+    <ClCompile Include="algorithms\hash\sha1.cpp" />
+    <ClCompile Include="algorithms\crypto\rsa.cpp" />
     <ClCompile Include="ui\application.cpp" />
     <ClCompile Include="ui\central_widget.cpp" />
     <ClCompile Include="ui\main_window.cpp" />
     <ClInclude Include="algorithms\rsa_digital_signature.h" />
-    <ClInclude Include="algorithms\sha1.h" />
-    <ClInclude Include="algorithms\rsa.h" />
-    <ClInclude Include="algorithms\hash_algorithm.h" />
+    <ClInclude Include="algorithms\hash\sha1.h" />
+    <ClInclude Include="algorithms\crypto\rsa.h" />
+    <ClInclude Include="algorithms\hash\hash_algorithm.h" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">Create</PrecompiledHeader>

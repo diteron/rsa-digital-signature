@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sha1.h"
-#include "rsa.h"
+#include "hash/sha1.h"
+#include "crypto/rsa.h"
 
 class RSADigitalSignature {
 public:

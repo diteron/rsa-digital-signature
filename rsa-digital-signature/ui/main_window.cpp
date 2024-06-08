@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "main_window.h"
 
-#include "algorithms/sha1.h"
-
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
     digitalSignature_(),

@@ -38,13 +38,13 @@
     <ClInclude Include="algorithms\rsa_digital_signature.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="algorithms\sha1.h">
+    <ClInclude Include="algorithms\hash\sha1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="algorithms\rsa.h">
+    <ClInclude Include="algorithms\crypto\rsa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="algorithms\hash_algorithm.h">
+    <ClInclude Include="algorithms\hash\hash_algorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,13 +64,13 @@
     <ClCompile Include="algorithms\rsa_digital_signature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="algorithms\sha1.cpp">
+    <ClCompile Include="algorithms\hash\sha1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="algorithms\rsa.cpp">
+    <ClCompile Include="algorithms\crypto\rsa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="algorithms\hash_algorithm.cpp">
+    <ClCompile Include="algorithms\hash\hash_algorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
