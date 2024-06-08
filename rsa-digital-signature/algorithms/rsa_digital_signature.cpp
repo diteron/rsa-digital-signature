@@ -7,9 +7,8 @@
 #include <fstream>
 
 RSADigitalSignature::RSADigitalSignature() 
-    : fileData_(), fileSize_(),
-      sha1_(), sha1Digest_(), sha1DigestStr_(),
-      digitalSignature_(), digitalSignatureStr_(),
+    : sha1_(), sha1Digest_(),
+      digitalSignature_(),
       operationTime_()
 {}
 
@@ -60,21 +59,17 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
         return false;
     }
 
-    fileSize_ = std::filesystem::file_size(filePath);
-    if (!readFileData(filePath)) {
+    uintmax_t originalFileSize = std::filesystem::file_size(filePath);
+    std::vector<BYTE> fileData;
+    if (!readFileData(fileData, filePath)) {
         error_ = Error::FileNotFound;
         return false;
     }
 
-    sha1Digest_ = sha1_.getDigest(fileData_);
-    sha1DigestStr_ = sha1_.getLastDigestStr();
-
+    sha1Digest_ = sha1_.getDigest(fileData);
     createDigitalSignature();
     addDigitalSignatureToFile(filePath);
-
-    uintmax_t fileSizeWithSignature = std::filesystem::file_size(filePath);
-    uintmax_t signatureSize = fileSizeWithSignature - fileSize_;
-    addDigitalSignatureSizeToFile(signatureSize, filePath);
+    addDigitalSignatureSizeToFile(originalFileSize, filePath);
 
     end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     operationTime_ = end - start;
@@ -96,14 +91,15 @@ bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
     getDigitalSignatureFromFile(filePath);
     BigInt digestFromSignature = getDigestFromDigitalSignature(digitalSignature_);
 
-    if (!readFileData(filePath)) {
+    std::vector<BYTE> fileData;
+    uintmax_t fileDataSize = getFileDataSize(filePath);
+    if (!readFileData(fileData, fileDataSize, filePath)) {
         error_ = Error::FileNotFound;
         return false;
     }
 
-    BigInt fileDigest = sha1_.getDigest(fileData_);
-
-    bool result = digestFromSignature == fileDigest;
+    sha1Digest_ = sha1_.getDigest(fileData);
+    bool result = digestFromSignature == sha1Digest_;
 
     end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     operationTime_ = end - start;
@@ -116,14 +112,30 @@ RSADigitalSignature::Error RSADigitalSignature::getLastError() const
     return error_;
 }
 
-const std::string& RSADigitalSignature::getDigestStr() const
+const BigInt& RSADigitalSignature::getDigest() const
 {
-    return sha1DigestStr_;
+    return sha1Digest_;
 }
 
-const std::string& RSADigitalSignature::getDigitalSignatureStr() const
+std::string RSADigitalSignature::getDigestStr() const
 {
-    return digitalSignatureStr_;
+    std::stringstream strStream;
+    strStream << std::hex << sha1Digest_;
+
+    return strStream.str();
+}
+
+const BigInt& RSADigitalSignature::getDigitalSignature() const
+{
+    return digitalSignature_;
+}
+
+std::string RSADigitalSignature::getDigitalSignatureStr() const
+{
+    std::stringstream strStream;
+    strStream << std::hex << digitalSignature_;
+
+    return strStream.str();
 }
 
 uint64_t RSADigitalSignature::getLastOperationTime() const
@@ -131,19 +143,36 @@ uint64_t RSADigitalSignature::getLastOperationTime() const
     return operationTime_;
 }
 
-bool RSADigitalSignature::readFileData(std::filesystem::path filePath)
+bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, std::filesystem::path filePath) const
 {
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
-        error_ = Error::FileNotFound;
         return false;
     }
 
-    fileData_.clear();
-    fileData_.resize(fileSize_);
+    uintmax_t fileSize = std::filesystem::file_size(filePath);
+
+    container.clear();
+    container.resize(fileSize);
 
     file >> std::noskipws;
-    file.read(reinterpret_cast<char*>(fileData_.data()), fileSize_);
+    file.read(reinterpret_cast<char*>(container.data()), fileSize);
+
+    return true;
+}
+
+bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, uintmax_t dataSize, std::filesystem::path filePath) const
+{
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    container.clear();
+    container.resize(dataSize);
+
+    file >> std::noskipws;
+    file.read(reinterpret_cast<char*>(container.data()), dataSize);
 
     return true;
 }
@@ -151,10 +180,6 @@ bool RSADigitalSignature::readFileData(std::filesystem::path filePath)
 void RSADigitalSignature::createDigitalSignature()
 {
     digitalSignature_ = RSA::decrypt(sha1Digest_, rsa_->getPrivateKey());
-    
-    std::stringstream strStream;
-    strStream << std::hex << digitalSignature_;
-    digitalSignatureStr_ = strStream.str();
 }
 
 void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePath) const
@@ -166,28 +191,40 @@ void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePa
     arch << digitalSignature_;
 }
 
-void RSADigitalSignature::addDigitalSignatureSizeToFile(uintmax_t signatureSize, std::filesystem::path filePath) const
+void RSADigitalSignature::addDigitalSignatureSizeToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const
 {
+    uintmax_t fileSizeWithSignature = std::filesystem::file_size(filePath);
+    uintmax_t signatureSize = fileSizeWithSignature - originalFileSize;
+
     std::ofstream file(filePath, std::ios::binary | std::ios::app);
     file.write(reinterpret_cast<const char*>(&signatureSize), sizeof(signatureSize));
 }
 
-void RSADigitalSignature::getDigitalSignatureFromFile(std::filesystem::path filePath)
+uintmax_t RSADigitalSignature::getFileDataSize(std::filesystem::path signedFilePath) const
+{
+    std::ifstream file(signedFilePath, std::ios::binary);
+
+    uintmax_t signatureSize = 0;
+    file.seekg(-sizeof(signatureSize), std::ios::end);
+    file.read(reinterpret_cast<char*>(&signatureSize), sizeof(signatureSize));
+
+    return std::filesystem::file_size(signedFilePath) - signatureSize - sizeof(signatureSize);
+}
+
+void RSADigitalSignature::getDigitalSignatureFromFile(std::filesystem::path signedFilePath)
 {
     using namespace boost::archive;
 
-    std::ifstream file(filePath, std::ios::binary);
+    std::ifstream file(signedFilePath, std::ios::binary);
 
-    uintmax_t signatureSize;
+    uintmax_t signatureSize = 0;
     file.seekg(-sizeof(signatureSize), std::ios::end);
     binary_iarchive arch(file, archive_flags::no_header);
     arch >> signatureSize;
 
-    uintmax_t signatureOffset = std::filesystem::file_size(filePath) - signatureSize - sizeof(signatureSize);
+    uintmax_t signatureOffset = std::filesystem::file_size(signedFilePath) - signatureSize - sizeof(signatureSize);
     file.seekg(signatureOffset);
     arch >> digitalSignature_;
-
-    fileSize_ = signatureOffset;
 }
 
 BigInt RSADigitalSignature::getDigestFromDigitalSignature(const BigInt& digitalSignature) const

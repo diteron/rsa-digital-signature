@@ -132,11 +132,11 @@ uint32_t SHA1::convertToBigEndian(uint32_t num) const
 
 BigInt SHA1::combineDigest() const 
 {
-    BigInt h0(convertToBigEndian(h0_));
-    BigInt h1(convertToBigEndian(h1_));
-    BigInt h2(convertToBigEndian(h2_));
-    BigInt h3(convertToBigEndian(h3_));
-    BigInt h4(convertToBigEndian(h4_));
+    BigInt h0(h0_);
+    BigInt h1(h1_);
+    BigInt h2(h2_);
+    BigInt h3(h3_);
+    BigInt h4(h4_);
 
     return BigInt((h0 << 128) | (h1 << 96)
                  | (h2 << 64) | (h3 << 32) | h4);

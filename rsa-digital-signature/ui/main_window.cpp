@@ -132,14 +132,14 @@ void MainWindow::addDigitalSignature()
         return;
     }
 
-    hashDigestOutput_->setText(digitalSignature_->getDigestStr().c_str());
-    dsOutput_->setText(digitalSignature_->getDigitalSignatureStr().c_str());
-
     QString message("The file was successfully signed.\n");
     message += "Time taken: " + QString::number(digitalSignature_->getLastOperationTime()) + " ms.";
     QApplication::beep();
     QMessageBox::information(nullptr, QApplication::applicationName(),
                              message);
+
+    hashDigestOutput_->setText(digitalSignature_->getDigestStr().c_str());
+    dsOutput_->setText(digitalSignature_->getDigitalSignatureStr().c_str());
 }
 
 void MainWindow::checkDigitalSignature()
@@ -178,6 +178,9 @@ void MainWindow::checkDigitalSignature()
         QMessageBox::warning(nullptr, QApplication::applicationName(),
                              message);
     }
+
+    hashDigestOutput_->setText(digitalSignature_->getDigestStr().c_str());
+    dsOutput_->setText(digitalSignature_->getDigitalSignatureStr().c_str());
 }
 
 void MainWindow::printDigitalSignatureError() const
