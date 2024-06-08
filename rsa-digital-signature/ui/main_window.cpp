@@ -103,6 +103,10 @@ void MainWindow::paramChanged(const QString& str)
 void MainWindow::openFile()
 {
     QString fileName = QFileDialog::getOpenFileName(centralWidget_);
+    if (fileName.isEmpty()) {
+        return;
+    }
+
     statusBarFileName_->setText(fileName);
 
     QByteArray byteArr = fileName.toLocal8Bit();
