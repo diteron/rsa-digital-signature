@@ -30,6 +30,7 @@ private:
     bool readFileData(std::filesystem::path filePath);
     void createDigitalSignature();
     void addDigitalSignatureToFile(std::filesystem::path filePath) const;
+    void addDigitalSignatureSizeToFile(uintmax_t signatureSize, std::filesystem::path filePath) const;
 
     void getDigitalSignatureFromFile(std::filesystem::path filePath);
     BigInt getDigestFromDigitalSignature(const BigInt& digitalSignature) const;

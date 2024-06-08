@@ -72,6 +72,10 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
     createDigitalSignature();
     addDigitalSignatureToFile(filePath);
 
+    uintmax_t fileSizeWithSignature = std::filesystem::file_size(filePath);
+    uintmax_t signatureSize = fileSizeWithSignature - fileSize_;
+    addDigitalSignatureSizeToFile(signatureSize, filePath);
+
     end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     operationTime_ = end - start;
 
@@ -98,7 +102,6 @@ bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
     }
 
     BigInt fileDigest = sha1_.getDigest(fileData_);
-
 
     bool result = digestFromSignature == fileDigest;
 
@@ -161,7 +164,12 @@ void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePa
     std::ofstream file(filePath, std::ios::binary | std::ios::app);
     binary_oarchive arch(file, archive_flags::no_header);
     arch << digitalSignature_;
-    arch << fileSize_;
+}
+
+void RSADigitalSignature::addDigitalSignatureSizeToFile(uintmax_t signatureSize, std::filesystem::path filePath) const
+{
+    std::ofstream file(filePath, std::ios::binary | std::ios::app);
+    file.write(reinterpret_cast<const char*>(&signatureSize), sizeof(signatureSize));
 }
 
 void RSADigitalSignature::getDigitalSignatureFromFile(std::filesystem::path filePath)
@@ -170,12 +178,16 @@ void RSADigitalSignature::getDigitalSignatureFromFile(std::filesystem::path file
 
     std::ifstream file(filePath, std::ios::binary);
 
-    file.seekg(-8, std::ios::end);
+    uintmax_t signatureSize;
+    file.seekg(-sizeof(signatureSize), std::ios::end);
     binary_iarchive arch(file, archive_flags::no_header);
-    arch >> fileSize_;
+    arch >> signatureSize;
 
-    file.seekg(fileSize_);
+    uintmax_t signatureOffset = std::filesystem::file_size(filePath) - signatureSize - sizeof(signatureSize);
+    file.seekg(signatureOffset);
     arch >> digitalSignature_;
+
+    fileSize_ = signatureOffset;
 }
 
 BigInt RSADigitalSignature::getDigestFromDigitalSignature(const BigInt& digitalSignature) const
