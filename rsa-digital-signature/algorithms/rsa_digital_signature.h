@@ -32,8 +32,7 @@ private:
     bool readFileData(std::vector<BYTE>& container, std::filesystem::path filePath) const;
     bool readFileData(std::vector<BYTE>& container, uintmax_t dataSize, std::filesystem::path filePath) const;
     void createDigitalSignature();
-    void addDigitalSignatureToFile(std::filesystem::path filePath) const;
-    void addDigitalSignatureSizeToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const;
+    void addDigitalSignatureToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const;
 
     uintmax_t getFileDataSize(std::filesystem::path signedFilePath) const;
     void getDigitalSignatureFromFile(std::filesystem::path signedFilePath);

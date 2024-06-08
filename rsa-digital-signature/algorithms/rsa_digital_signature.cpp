@@ -68,8 +68,7 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
 
     sha1Digest_ = sha1_.getDigest(fileData);
     createDigitalSignature();
-    addDigitalSignatureToFile(filePath);
-    addDigitalSignatureSizeToFile(originalFileSize, filePath);
+    addDigitalSignatureToFile(originalFileSize, filePath);
 
     end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     operationTime_ = end - start;
@@ -182,22 +181,18 @@ void RSADigitalSignature::createDigitalSignature()
     digitalSignature_ = RSA::decrypt(sha1Digest_, rsa_->getPrivateKey());
 }
 
-void RSADigitalSignature::addDigitalSignatureToFile(std::filesystem::path filePath) const
+void RSADigitalSignature::addDigitalSignatureToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const
 {
     using namespace boost::archive;
 
     std::ofstream file(filePath, std::ios::binary | std::ios::app);
     binary_oarchive arch(file, archive_flags::no_header);
+    
     arch << digitalSignature_;
-}
 
-void RSADigitalSignature::addDigitalSignatureSizeToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const
-{
-    uintmax_t fileSizeWithSignature = std::filesystem::file_size(filePath);
+    uintmax_t fileSizeWithSignature = file.tellp();
     uintmax_t signatureSize = fileSizeWithSignature - originalFileSize;
-
-    std::ofstream file(filePath, std::ios::binary | std::ios::app);
-    file.write(reinterpret_cast<const char*>(&signatureSize), sizeof(signatureSize));
+    arch << signatureSize;
 }
 
 uintmax_t RSADigitalSignature::getFileDataSize(std::filesystem::path signedFilePath) const
