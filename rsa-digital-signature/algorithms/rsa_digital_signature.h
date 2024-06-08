@@ -41,8 +41,8 @@ private:
     Error error_ = Error::ParamsNotSetup;
     bool isEachParamCorrect_ = false;
 
-    SHA1 sha1_;
-    BigInt sha1Digest_;
+    std::unique_ptr<HashAlgorithm> hashAlgorithm_ = nullptr;
+    BigInt digest_;
 
     std::unique_ptr<RSA> rsa_ = nullptr;
 

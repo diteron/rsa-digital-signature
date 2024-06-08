@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "sha1.h"
 
-SHA1::SHA1() : digest_(), digestStr_()
+SHA1::SHA1() : HashAlgorithm()
 {}
 
 BigInt SHA1::getDigest(std::vector<BYTE>& data)
@@ -20,19 +20,8 @@ BigInt SHA1::getDigest(std::vector<BYTE>& data)
     }
 
     digest_ = combineDigest();
-    digestStr_ = createDigestStr();
 
     return digest_;
-}
-
-const BigInt& SHA1::getLastDigest() const
-{
-    return digest_;
-}
-
-const std::string& SHA1::getLastDigestStr() const
-{
-    return digestStr_;
 }
 
 void SHA1::preProcessData(std::vector<BYTE>& data)

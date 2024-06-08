@@ -1,16 +1,12 @@
 #pragma once
 
-#include <boost/multiprecision/cpp_int.hpp>
+#include "hash_algorithm.h"
 
-using BigInt = boost::multiprecision::cpp_int;
-
-class SHA1 {
+class SHA1 : public HashAlgorithm {
 public:
     SHA1();
 
-    BigInt getDigest(std::vector<BYTE>& data);
-    const BigInt& getLastDigest() const;
-    const std::string& getLastDigestStr() const;
+    virtual BigInt getDigest(std::vector<BYTE>& data) override;
     
 private:
     void preProcessData(std::vector<BYTE>& data);
@@ -27,7 +23,4 @@ private:
     uint32_t h2_ = 0x98BADCFE;
     uint32_t h3_ = 0x10325476;
     uint32_t h4_ = 0xC3D2E1F0;
-
-    BigInt digest_;
-    std::string digestStr_;
 };

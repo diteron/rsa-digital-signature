@@ -7,7 +7,7 @@
 #include <fstream>
 
 RSADigitalSignature::RSADigitalSignature() 
-    : sha1_(), sha1Digest_(),
+    : hashAlgorithm_(std::make_unique<SHA1>()), digest_(),
       digitalSignature_(),
       operationTime_()
 {}
@@ -66,7 +66,7 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
         return false;
     }
 
-    sha1Digest_ = sha1_.getDigest(fileData);
+    digest_ = hashAlgorithm_->getDigest(fileData);
     createDigitalSignature();
     addDigitalSignatureToFile(originalFileSize, filePath);
 
@@ -97,8 +97,8 @@ bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
         return false;
     }
 
-    sha1Digest_ = sha1_.getDigest(fileData);
-    bool result = digestFromSignature == sha1Digest_;
+    digest_ = hashAlgorithm_->getDigest(fileData);
+    bool result = digestFromSignature == digest_;
 
     end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     operationTime_ = end - start;
@@ -113,13 +113,13 @@ RSADigitalSignature::Error RSADigitalSignature::getLastError() const
 
 const BigInt& RSADigitalSignature::getDigest() const
 {
-    return sha1Digest_;
+    return digest_;
 }
 
 std::string RSADigitalSignature::getDigestStr() const
 {
     std::stringstream strStream;
-    strStream << std::hex << sha1Digest_;
+    strStream << std::hex << digest_;
 
     return strStream.str();
 }
@@ -178,7 +178,7 @@ bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, uintmax_t d
 
 void RSADigitalSignature::createDigitalSignature()
 {
-    digitalSignature_ = RSA::decrypt(sha1Digest_, rsa_->getPrivateKey());
+    digitalSignature_ = RSA::decrypt(digest_, rsa_->getPrivateKey());
 }
 
 void RSADigitalSignature::addDigitalSignatureToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const
