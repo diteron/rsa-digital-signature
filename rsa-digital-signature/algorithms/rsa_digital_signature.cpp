@@ -150,8 +150,6 @@ bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, std::filesy
     }
 
     uintmax_t fileSize = std::filesystem::file_size(filePath);
-
-    container.clear();
     container.resize(fileSize);
 
     file >> std::noskipws;
@@ -167,7 +165,6 @@ bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, uintmax_t d
         return false;
     }
 
-    container.clear();
     container.resize(dataSize);
 
     file >> std::noskipws;
