@@ -60,7 +60,7 @@ bool RSADigitalSignature::signFile(std::filesystem::path filePath)
     }
 
     uintmax_t originalFileSize = std::filesystem::file_size(filePath);
-    std::vector<BYTE> fileData;
+    std::vector<uint8_t> fileData;
     if (!readFileData(fileData, filePath)) {
         error_ = Error::FileNotFound;
         return false;
@@ -90,7 +90,7 @@ bool RSADigitalSignature::checkDigitalSignature(std::filesystem::path filePath)
     getDigitalSignatureFromFile(filePath);
     BigInt digestFromSignature = getDigestFromDigitalSignature(digitalSignature_);
 
-    std::vector<BYTE> fileData;
+    std::vector<uint8_t> fileData;
     uintmax_t fileDataSize = getFileDataSize(filePath);
     if (!readFileData(fileData, fileDataSize, filePath)) {
         error_ = Error::FileNotFound;
@@ -142,7 +142,7 @@ uint64_t RSADigitalSignature::getLastOperationTime() const
     return operationTime_;
 }
 
-bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, std::filesystem::path filePath) const
+bool RSADigitalSignature::readFileData(std::vector<uint8_t>& container, std::filesystem::path filePath) const
 {
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
@@ -158,7 +158,7 @@ bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, std::filesy
     return true;
 }
 
-bool RSADigitalSignature::readFileData(std::vector<BYTE>& container, uintmax_t dataSize, std::filesystem::path filePath) const
+bool RSADigitalSignature::readFileData(std::vector<uint8_t>& container, uintmax_t dataSize, std::filesystem::path filePath) const
 {
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if (!file.is_open()) {

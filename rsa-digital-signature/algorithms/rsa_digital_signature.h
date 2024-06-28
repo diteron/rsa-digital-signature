@@ -29,8 +29,8 @@ public:
     uint64_t getLastOperationTime() const;
 
 private:
-    bool readFileData(std::vector<BYTE>& container, std::filesystem::path filePath) const;
-    bool readFileData(std::vector<BYTE>& container, uintmax_t dataSize, std::filesystem::path filePath) const;
+    bool readFileData(std::vector<uint8_t>& container, std::filesystem::path filePath) const;
+    bool readFileData(std::vector<uint8_t>& container, uintmax_t dataSize, std::filesystem::path filePath) const;
     void createDigitalSignature();
     void addDigitalSignatureToFile(uintmax_t originalFileSize, std::filesystem::path filePath) const;
 

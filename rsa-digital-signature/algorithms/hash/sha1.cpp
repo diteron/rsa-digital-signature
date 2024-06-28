@@ -4,7 +4,7 @@
 SHA1::SHA1() : HashAlgorithm()
 {}
 
-BigInt SHA1::getDigest(std::vector<BYTE>& data)
+BigInt SHA1::getDigest(std::vector<uint8_t>& data)
 {
     h0_ = 0x67452301;
     h1_ = 0xEFCDAB89;
@@ -24,7 +24,7 @@ BigInt SHA1::getDigest(std::vector<BYTE>& data)
     return digest_;
 }
 
-void SHA1::preProcessData(std::vector<BYTE>& data)
+void SHA1::preProcessData(std::vector<uint8_t>& data)
 {
     size_t initialDataSize = data.size() * 8;   // In bits
    
@@ -38,17 +38,17 @@ void SHA1::preProcessData(std::vector<BYTE>& data)
     }
 
     // Add initial message size as 64-bit big endian integer
-    data.push_back(static_cast<BYTE>(initialDataSize >> 56));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 48));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 40));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 32));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 24));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 16));
-    data.push_back(static_cast<BYTE>(initialDataSize >> 8));
-    data.push_back(static_cast<BYTE>(initialDataSize));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 56));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 48));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 40));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 32));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 24));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 16));
+    data.push_back(static_cast<uint8_t>(initialDataSize >> 8));
+    data.push_back(static_cast<uint8_t>(initialDataSize));
 }
 
-void SHA1::processBlock(const std::vector<BYTE>& data, size_t blockOffsetIndex)
+void SHA1::processBlock(const std::vector<uint8_t>& data, size_t blockOffsetIndex)
 {
     size_t t;
     uint32_t a = h0_;
@@ -60,10 +60,10 @@ void SHA1::processBlock(const std::vector<BYTE>& data, size_t blockOffsetIndex)
 
     // Create the sixteen 32-bit words and extend them into eighty 32-bit words
     for (t = 0; t < 16; ++t) {
-        W[t] = (static_cast<BYTE>(data[t * 4 + blockOffsetIndex])     << 24)
-             | (static_cast<BYTE>(data[t * 4 + 1 + blockOffsetIndex]) << 16)
-             | (static_cast<BYTE>(data[t * 4 + 2 + blockOffsetIndex]) << 8)
-             |  static_cast<BYTE>(data[t * 4 + 3 + blockOffsetIndex]);
+        W[t] = (static_cast<uint8_t>(data[t * 4 + blockOffsetIndex])     << 24)
+             | (static_cast<uint8_t>(data[t * 4 + 1 + blockOffsetIndex]) << 16)
+             | (static_cast<uint8_t>(data[t * 4 + 2 + blockOffsetIndex]) << 8)
+             |  static_cast<uint8_t>(data[t * 4 + 3 + blockOffsetIndex]);
     }
     for (; t < 80; ++t) {
         W[t] = cyclicLeftRotate(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);

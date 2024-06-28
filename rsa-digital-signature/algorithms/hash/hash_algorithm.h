@@ -8,7 +8,7 @@ class HashAlgorithm {
 public:
     HashAlgorithm();
 
-    virtual BigInt getDigest(std::vector<BYTE>& data) = 0;
+    virtual BigInt getDigest(std::vector<uint8_t>& data) = 0;
     virtual const BigInt& getLastDigest() const;
     virtual std::string getLastDigestStr() const;
 

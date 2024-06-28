@@ -108,7 +108,7 @@ void MainWindow::openFile()
     statusBarFileName_->setText(fileName);
 
     QByteArray byteArr = fileName.toLocal8Bit();
-    filePath_ = std::filesystem::path(byteArr.constData());   
+    filePath_ = std::filesystem::path(byteArr.constData());
     isFileSelected_ = true;
 }
 
